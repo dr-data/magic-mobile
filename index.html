@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Magic Hello World 🌎</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <!-- 1️⃣ Install Magic SDK -->
+    <script src="https://auth.magic.link/sdk"></script>
+    <script>
+      /* 2️⃣ Initialize Magic Instance */
+      let magic = new Magic("pk_live_3E01F5AEDB94425B", { locale: "zh_TW" });
+
+      /* 3️⃣ Implement Render Function */
+      const render = async () => {
+        const isLoggedIn = await magic.user.isLoggedIn();
+
+        /* Show login form if user is not logged in */
+        let html = `
+          <h1>Please sign up or login</h1>
+          <form onsubmit="handleLogin(event)">
+            <input type="text" name="phone" required="required" placeholder="90000000" />
+            <button type="submit">Send</button>
+          </form>
+        `;
+
+        if (isLoggedIn) {
+          /* Get user metadata including phone */
+          const userMetadata = await magic.user.getMetadata();
+          html = `
+            <h1>logged in the website</h1>
+            <button onclick="handleLogout()">Logout</button>
+          `;
+        }
+
+        document.getElementById("app").innerHTML = html;
+      };
+
+      /* 4️⃣ Implement Login Handler */
+      const handleLogin = async (e) => {
+        e.preventDefault();
+        var phoneNumber = new FormData(e.target).get("phone");
+
+        console.log(phoneNumber);
+
+        if (phoneNumber.includes("+852")) {
+          /* One-liner login 🤯 */
+          await magic.auth.loginWithSMS({ phoneNumber });
+          render();
+        } else {
+          console.log("need a HK mobile phone");
+          let html = `
+          <h1>need a HK Phone no.: +852</h1>
+        `;
+          document.getElementById("error").innerHTML = html;
+
+          /*
+          https://stackoverflow.com/questions/1911290/make-div-text-disappear-after-5-seconds-using-jquery
+
+            This Answer is without jQuery, you can just grab your element and know its index position.
+            Then use it in the div below. I will be your div's index number in dom.
+            
+            
+            */
+
+          const div = document.querySelectorAll("div");
+          setTimeout(() => {
+            div[1].textContent = "";
+          }, 3000);
+        }
+      };
+
+      /* 5️⃣ Implement Logout Handler */
+      const handleLogout = async () => {
+        await magic.user.logout();
+        render();
+      };
+    </script>
+  </head>
+  <body onload="render()">
+    <div id="app">
+      Loading...
+    </div>
+    <div id="error"></div>
+  </body>
+</html>
